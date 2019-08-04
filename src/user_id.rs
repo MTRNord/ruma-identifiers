@@ -7,8 +7,6 @@ use std::{
 
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
-use lazy_static::lazy_static;
-use regex::Regex;
 use serde::{
     de::{Error as SerdeError, Unexpected, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
@@ -16,11 +14,6 @@ use serde::{
 use url::Host;
 
 use crate::{display, error::Error, generate_localpart, parse_id};
-
-lazy_static! {
-    static ref USER_LOCALPART_PATTERN: Regex =
-        Regex::new(r"\A[a-z0-9._=-]+\z").expect("Failed to create user localpart regex.");
-}
 
 /// A Matrix user ID.
 ///
@@ -123,10 +116,6 @@ impl<'a> TryFrom<&'a str> for UserId {
     fn try_from(user_id: &'a str) -> Result<Self, Error> {
         let (localpart, host, port) = parse_id('@', user_id)?;
         let downcased_localpart = localpart.to_lowercase();
-
-        if !USER_LOCALPART_PATTERN.is_match(&downcased_localpart) {
-            return Err(Error::InvalidCharacters);
-        }
 
         Ok(Self {
             hostname: host,
@@ -232,14 +221,6 @@ mod tests {
                 .expect("Failed to create UserId.")
                 .to_string(),
             "@carl:example.com:5000"
-        );
-    }
-
-    #[test]
-    fn invalid_characters_in_user_id_localpart() {
-        assert_eq!(
-            UserId::try_from("@%%%:example.com").err().unwrap(),
-            Error::InvalidCharacters
         );
     }
 

@@ -10,10 +10,6 @@ use url::ParseError;
 /// An error encountered when trying to parse an invalid ID string.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Error {
-    /// The ID's localpart contains invalid characters.
-    ///
-    /// Only relevant for user IDs.
-    InvalidCharacters,
     /// The domain part of the the ID string is not a valid IP address or DNS name.
     InvalidHost,
     /// The ID exceeds 255 bytes (or 32 codepoints for a room version ID.)
@@ -29,7 +25,6 @@ pub enum Error {
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let message = match *self {
-            Error::InvalidCharacters => "localpart contains invalid characters",
             Error::InvalidHost => "server name is not a valid IP address or domain name",
             Error::MaximumLengthExceeded => "ID exceeds 255 bytes",
             Error::MinimumLengthNotSatisfied => "ID must be at least 4 characters",
