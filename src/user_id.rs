@@ -98,8 +98,8 @@ impl Display for UserId {
 
 impl Serialize for UserId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where
+            S: Serializer,
     {
         serializer.serialize_str(&self.to_string())
     }
@@ -107,8 +107,8 @@ impl Serialize for UserId {
 
 impl<'de> Deserialize<'de> for UserId {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
+        where
+            D: Deserializer<'de>,
     {
         deserialize_id(deserializer, "a Matrix user ID as a string")
     }
@@ -123,10 +123,9 @@ impl TryFrom<&str> for UserId {
     /// server name.
     fn try_from(user_id: &str) -> Result<Self, Error> {
         let (localpart, host, port) = parse_id('@', user_id)?;
-        let downcased_localpart = localpart.to_lowercase();
 
         // See https://matrix.org/docs/spec/appendices#user-identifiers
-        let is_fully_conforming = downcased_localpart.bytes().all(|b| match b {
+        let is_fully_conforming = localpart.bytes().all(|b| match b {
             b'0'..=b'9' | b'a'..=b'z' | b'-' | b'.' | b'=' | b'_' | b'/' => true,
             _ => false,
         });
@@ -135,17 +134,19 @@ impl TryFrom<&str> for UserId {
         // for historical user IDs. If there are, return an error.
         // See https://matrix.org/docs/spec/appendices#historical-user-ids
         if !is_fully_conforming
-            && downcased_localpart
-                .bytes()
-                .any(|b| b < 0x21 || b == b':' || b > 0x7E)
+            && localpart
+            .bytes()
+            .any(|b| b < 0x21 || b == b':' || b > 0x7E)
         {
             return Err(Error::InvalidCharacters);
         }
 
+        let return_localpart = if !is_fully_conforming { localpart.to_string() } else { localpart.to_lowercase() };
+
         Ok(Self {
             hostname: host,
             port,
-            localpart: downcased_localpart,
+            localpart: return_localpart,
             is_historical: !is_fully_conforming,
         })
     }
@@ -176,12 +177,13 @@ mod tests {
 
     #[test]
     fn downcase_user_id() {
+        let user_id = UserId::try_from("@CARL:example.com")
+            .expect("Failed to create UserId.");
         assert_eq!(
-            UserId::try_from("@CARL:example.com")
-                .expect("Failed to create UserId.")
-                .to_string(),
-            "@carl:example.com"
+            user_id.to_string(),
+            "@CARL:example.com"
         );
+        assert!(user_id.is_historical());
     }
 
     #[test]
