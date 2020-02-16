@@ -98,8 +98,8 @@ impl Display for UserId {
 
 impl Serialize for UserId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         serializer.serialize_str(&self.to_string())
     }
@@ -107,8 +107,8 @@ impl Serialize for UserId {
 
 impl<'de> Deserialize<'de> for UserId {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         deserialize_id(deserializer, "a Matrix user ID as a string")
     }
@@ -133,15 +133,15 @@ impl TryFrom<&str> for UserId {
         // If it's not fully conforming, check if it contains characters that are also disallowed
         // for historical user IDs. If there are, return an error.
         // See https://matrix.org/docs/spec/appendices#historical-user-ids
-        if !is_fully_conforming
-            && localpart
-            .bytes()
-            .any(|b| b < 0x21 || b == b':' || b > 0x7E)
-        {
+        if !is_fully_conforming && localpart.bytes().any(|b| b < 0x21 || b == b':' || b > 0x7E) {
             return Err(Error::InvalidCharacters);
         }
 
-        let return_localpart = if !is_fully_conforming { localpart.to_string() } else { localpart.to_lowercase() };
+        let return_localpart = if !is_fully_conforming {
+            localpart.to_string()
+        } else {
+            localpart.to_lowercase()
+        };
 
         Ok(Self {
             hostname: host,
@@ -177,12 +177,8 @@ mod tests {
 
     #[test]
     fn downcase_user_id() {
-        let user_id = UserId::try_from("@CARL:example.com")
-            .expect("Failed to create UserId.");
-        assert_eq!(
-            user_id.to_string(),
-            "@CARL:example.com"
-        );
+        let user_id = UserId::try_from("@CARL:example.com").expect("Failed to create UserId.");
+        assert_eq!(user_id.to_string(), "@CARL:example.com");
         assert!(user_id.is_historical());
     }
 
