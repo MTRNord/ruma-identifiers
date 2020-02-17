@@ -137,16 +137,10 @@ impl TryFrom<&str> for UserId {
             return Err(Error::InvalidCharacters);
         }
 
-        let return_localpart = if !is_fully_conforming {
-            localpart.to_string()
-        } else {
-            localpart.to_lowercase()
-        };
-
         Ok(Self {
             hostname: host,
             port,
-            localpart: return_localpart,
+            localpart: localpart.to_owned(),
             is_historical: !is_fully_conforming,
         })
     }
